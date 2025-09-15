@@ -12,17 +12,31 @@ See documentation here: https://www.raylib.com/, and examples here: https://www.
 const unsigned int TARGET_FPS = 50;
 float dt = 1.0f/TARGET_FPS;
 float time = 0;
+float startX = 500;
+float startY = 500;
 float X = 500;
 float Y = 500;
 float frequency = 1;
 float amplitude = 100;
+ 
 
 void update()
 {
     dt = 1.0f / TARGET_FPS;
     time += dt;
-    X = X + (-sin(time * frequency)) * frequency * amplitude * dt;
-    Y = Y + (cos(time * frequency)) * frequency * amplitude * dt;
+    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+    {          
+        X = GetMousePosition().x;
+        Y = GetMousePosition().y;
+    }
+    else
+    {
+  
+        X = startX;
+        Y = startY;
+    }
+ //   X = X + (-sin(time * frequency)) * frequency * amplitude * dt;
+//    Y = Y + (cos(time * frequency)) * frequency * amplitude * dt;
     
 }
 void draw()
@@ -37,7 +51,7 @@ void draw()
     DrawText(TextFormat("T: %.f", time), GetScreenWidth() - 140, 10, 30, LIGHTGRAY);
 
     DrawCircle(X, Y, 50, RED);
-    DrawCircle(500+cos(time * frequency)* frequency* amplitude, 500 + (-sin(time * frequency)) * frequency * amplitude, 50, GREEN);
+   // DrawCircle(500+cos(time * frequency)* frequency* amplitude, 500 + (-sin(time * frequency)) * frequency * amplitude, 50, GREEN);
 
 
     EndDrawing();

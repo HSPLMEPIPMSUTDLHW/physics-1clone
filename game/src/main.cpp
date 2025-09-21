@@ -14,8 +14,8 @@ float dt = 1.0f/TARGET_FPS;
 float time = 0;
 float startX = InitialWidth/2;
 float startY = InitialHeight/2;
-float X = 500;
-float Y = 500;
+float X = startX;
+float Y = startY;
 //float frequency = 1;
 //float amplitude = 100;
 float launchAngle;
@@ -68,7 +68,7 @@ void draw()
   
   
       
-    DrawCircle(startX, startY, 25, RED);
+    DrawCircle(X, Y, 25, RED);
     //marks starting position
     DrawCircle(startX, startY, 5, GREEN);
  

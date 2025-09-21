@@ -12,8 +12,8 @@ See documentation here: https://www.raylib.com/, and examples here: https://www.
 const unsigned int TARGET_FPS = 50;
 float dt = 1.0f/TARGET_FPS;
 float time = 0;
-float startX = 500;
-float startY = 500;
+float startX = InitialWidth/2;
+float startY = InitialHeight/2;
 float X = 500;
 float Y = 500;
 //float frequency = 1;
@@ -68,7 +68,7 @@ void draw()
   
   
       
-    DrawCircle(X, Y, 25, RED);
+    DrawCircle(startX, startY, 25, RED);
     //marks starting position
     DrawCircle(startX, startY, 5, GREEN);
  

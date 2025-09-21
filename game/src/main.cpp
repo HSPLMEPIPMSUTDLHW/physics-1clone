@@ -28,15 +28,15 @@ void update()
     time += dt;
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
     {          
-        X = GetMousePosition().x;
-        Y = GetMousePosition().y;
+     //   X = GetMousePosition().x;
+   //     Y = GetMousePosition().y;
       //  launchAngle
     }
     else
     {
   
-        X = startX;
-        Y = startY;
+ //       X = startX;
+   //     Y = startY;
     }
     birdPos.x = startX - X;
     birdPos.y = startY - Y;
@@ -55,11 +55,14 @@ void draw()
 {
     BeginDrawing();
     ClearBackground(DARKBLUE);
-    DrawText("Michael Hatzitolios 101419422 world!", 10, 740, 20, LIGHTGRAY);
-
+   
 
     
     GuiSliderBar(Rectangle{ 60, 5, 1000, 10 }, "Time", TextFormat("%.2f", time), &time, 0, 240);
+    GuiSliderBar(Rectangle{ 60, 20, 1000, 10 }, "Angle", TextFormat("%.2f", launchAngle), &launchAngle, -PI, PI);
+    GuiSliderBar(Rectangle{ 60, 35, 1000, 10 }, "X Pos", TextFormat("%.2f", X), &X, 0, InitialWidth);
+    GuiSliderBar(Rectangle{ 60, 50, 1000, 10 }, "Y Pos", TextFormat("%.2f", Y), &Y, 0, InitialHeight);
+    GuiSliderBar(Rectangle{ 60, 65, 1000, 10 }, "Speed", TextFormat("%.2f", Y), &Y, -200, 200);
     //Postion is based on the starting postion
     DrawText(TextFormat("X: %.f", birdPos.x), GetScreenWidth() - 140, 10, 20, LIGHTGRAY);
     DrawText(TextFormat("Y: %.f", birdPos.y), GetScreenWidth() - 140, 40, 20, LIGHTGRAY);
@@ -68,9 +71,9 @@ void draw()
     DrawText(TextFormat("Angle: %.f", launchAngle*(180/PI)), GetScreenWidth() - 140, 130, 20, LIGHTGRAY);
     //sin
     DrawCircle(X, Y, 25, RED);
-    DrawCircle(startX,startY, 5, GREEN);
-    DrawLineV({ X,Y }, { startX,startY }, WHITE);
-    DrawLineV({ startX,startY }, { startX +birdPos.x,startY + birdPos.y }, RED);
+   // DrawCircle(startX,startY, 5, GREEN);
+    //DrawLineV({ X,Y }, { startX,startY }, WHITE);
+  //  DrawLineV({ startX,startY }, { startX +birdPos.x,startY + birdPos.y }, RED);
     EndDrawing();
 }
 int main()

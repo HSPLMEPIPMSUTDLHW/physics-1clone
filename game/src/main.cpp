@@ -37,30 +37,87 @@ public:
     float mass;
     float radius;
     std::string name = "obj";
-    Color color = RED;
+    Color color = GREEN;
 
     void draw()
     {
         DrawCircle(pos.x, pos.y, radius, color);
 
-     //   DrawText(name.c_str(), pos.x, pos.y, radius * 2, LIGHTGRAY);
+        //   DrawText(name.c_str(), pos.x, pos.y, radius * 2, LIGHTGRAY);
 
-        //Draw velocity
+           //Draw velocity
+        DrawLineEx(pos, pos + vel, 1, color);
+    }
+    Vector2 getPos()
+    {
+        return pos;
+    }
+
+    float getRad()
+    {
+        return radius;
+    }
+};
+
+class physCircle : public physbody
+{
+public:
+    float radius;
+
+    void draw()
+    {
+        DrawCircle(pos.x, pos.y, radius, color);
+
+        //   DrawText(name.c_str(), pos.x, pos.y, radius * 2, LIGHTGRAY);
+
+           //Draw velocity
         DrawLineEx(pos, pos + vel, 1, color);
     }
 };
+
+class physBox : public physbody
+{
+public:
+    Vector2 size;
+
+ //  void draw()
+ //  {
+ //      DrawCircle(pos.x, pos.y, radius, color);
+ //
+ //      //   DrawText(name.c_str(), pos.x, pos.y, radius * 2, LIGHTGRAY);
+ //
+ //         //Draw velocity
+ //      DrawLineEx(pos, pos + vel, 1, color);
+ //  }
+};
+
+float Hyp(float x, float y)
+{
+    return sqrt((x * x) + (y * y));
+};
+float Hyp(Vector2 a)
+{
+    return sqrt((a.x * a.x) + (a.y * a.y));
+};
+Vector2 launchVel(float X, float Y, float angle, float hyp)
+{
+    float x = cos(angle) * hyp;
+    float y = sin(angle) * hyp;
+
+    return { X + x,Y + y };
+}
 
 class physicSim
 {
 private:
     unsigned int objcount = 0;
 public:
-    std::vector<physbody> physobjects; // All objects in physics simulation
+    std::vector<physbody*> physobjects; // All objects in physics simulation
     Vector2 accelerationGravity = { 0, 9 };
 
-    void add(physbody newObject) // Add to physics simulation
+    void add(physbody* newObject) // Add to physics simulation
     {
-        newObject.name = std::to_string(objcount);
+        newObject->name = std::to_string(objcount);
         physobjects.push_back(newObject);
         objcount++;
     }
@@ -68,15 +125,64 @@ public:
   
     void update()
     {
+
         for (int i = 0; i < physobjects.size(); i++)
         {
             //vel = change in position / time, therefore     change in position = vel * time 
-            physobjects[i].pos = physobjects[i].pos + physobjects[i].vel * dt;
+            physobjects[i]->pos = physobjects[i]->pos + physobjects[i]->vel * dt;
             //accel = deltaV / time (change in velocity over time) therefore     deltaV = accel * time
-            physobjects[i].vel = physobjects[i].vel + accelerationGravity * dt;
+            physobjects[i]->vel = physobjects[i]->vel + accelerationGravity * dt;
+            physobjects[i]->color = GREEN; //
+
+        }
+        checkCollisions();
+        
+    }
+
+    bool CircleCircleCollision(physCircle* a, physCircle* b)
+    {
+        // calcualtes the distance between the two circles
+        // then checks if thhe distance is smaller then the radius' of the circles
+        // if the distance is smaller then it returns true
+        Vector2 d = a->getPos() - b->getPos();
+        if (Hyp(d) < (a->getRad() + b->getRad()))
+        {
+            return true;
+
+        }
+        return false;
+    }
+
+    void checkCollisions()
+    {
+    //    std::cout << "Birds: " << std::endl;
+        for (int i = 0; i < physobjects.size(); i++)
+        {
+           // 
+            for (int j = 1+i; j < physobjects.size(); j++)
+            {
+
+                physbody* objA = physobjects[i];
+                physCircle* circleA = (physCircle*)objA;
+               // objA->color = GREEN;
+                physbody* objB = physobjects[j];
+                physCircle* circleB = (physCircle*)objB;
+            
+                if (CircleCircleCollision(circleA, circleB))
+                {
+                    std::cout << "Birds:TOuched " << std::endl;
+                    objA->color = RED;
+                    objB->color = RED;
+                }
+                else
+                {
+                  
+                }
+            }
         }
     }
 };
+
 
 physicSim simulation;
 
@@ -95,11 +201,11 @@ void update()
     if (IsKeyPressed(KEY_SPACE))
     {
 
-        physbody bird;
+        physbody* bird = new physCircle();
      
-        bird.pos = { X, (float)GetScreenHeight() - 100 };
-        bird.vel = { launchSpeed * (float)cos(launchAngle), -launchSpeed * (float)sin(launchAngle) };
-        bird.radius = 10;
+        bird->pos = { X, Y };
+        bird->vel = { launchSpeed * (float)cos(launchAngle), -launchSpeed * (float)sin(launchAngle) };
+        bird->radius = 10;
         simulation.add(bird);
         std::cout << "Birds: " << simulation.physobjects.size() << std::endl;
     }
@@ -110,17 +216,7 @@ void update()
     simulation.update();
 
 }
-float Hyp(float x, float y)
-{
-    return sqrt((x * x) + (y * y));
-}
-Vector2 launchVel(float X, float Y,float angle, float hyp)
-{
-    float x = cos(angle) * hyp;
-    float y = sin(angle) * hyp;
-   
-    return { X+x,Y+y };
-}
+
 void draw()
 {
     BeginDrawing();
@@ -148,7 +244,7 @@ void draw()
     for (int i = 0; i < simulation.physobjects.size(); i++)
     {
      //   std::cout << "Birds" << std::endl;
-        simulation.physobjects[i].draw();
+        simulation.physobjects[i]->draw();
     }
 
     EndDrawing();

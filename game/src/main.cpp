@@ -12,7 +12,7 @@ See documentation here: https://www.raylib.com/, and examples here: https://www.
 #include <string>
 #include <vector>
 const unsigned int TARGET_FPS = 50;
-float dt = 1.0f/TARGET_FPS;
+float dt = 1.0f / TARGET_FPS;
 float mytime = 0;
 float startX = 100;
 float startY = InitialHeight - 100;
@@ -29,34 +29,23 @@ Vector2 birdPos;
 
 class physbody
 {
-   
+
 public:
     Vector2 pos;
     Vector2 vel;
     Vector2 drag;
     float mass;
-    float radius;
+
     std::string name = "obj";
     Color color = GREEN;
 
-    void draw()
-    {
-        DrawCircle(pos.x, pos.y, radius, color);
-
-        //   DrawText(name.c_str(), pos.x, pos.y, radius * 2, LIGHTGRAY);
-
-           //Draw velocity
-        DrawLineEx(pos, pos + vel, 1, color);
-    }
+    virtual void draw() {}
     Vector2 getPos()
     {
         return pos;
     }
 
-    float getRad()
-    {
-        return radius;
-    }
+
 };
 
 class physCircle : public physbody
@@ -64,14 +53,16 @@ class physCircle : public physbody
 public:
     float radius;
 
-    void draw()
+    void draw() override
     {
         DrawCircle(pos.x, pos.y, radius, color);
 
-        //   DrawText(name.c_str(), pos.x, pos.y, radius * 2, LIGHTGRAY);
-
-           //Draw velocity
+        //Draw velocity
         DrawLineEx(pos, pos + vel, 1, color);
+    }
+    float getRad()
+    {
+        return radius;
     }
 };
 
@@ -80,15 +71,8 @@ class physBox : public physbody
 public:
     Vector2 size;
 
- //  void draw()
- //  {
- //      DrawCircle(pos.x, pos.y, radius, color);
- //
- //      //   DrawText(name.c_str(), pos.x, pos.y, radius * 2, LIGHTGRAY);
- //
- //         //Draw velocity
- //      DrawLineEx(pos, pos + vel, 1, color);
- //  }
+    //   void draw() {}
+
 };
 
 float Hyp(float x, float y)
@@ -122,7 +106,7 @@ public:
         objcount++;
     }
 
-  
+
     void update()
     {
 
@@ -136,7 +120,7 @@ public:
 
         }
         checkCollisions();
-        
+
     }
 
     bool CircleCircleCollision(physCircle* a, physCircle* b)
@@ -155,28 +139,28 @@ public:
 
     void checkCollisions()
     {
-    //    std::cout << "Birds: " << std::endl;
+        //    std::cout << "Birds: " << std::endl;
         for (int i = 0; i < physobjects.size(); i++)
         {
-           // 
-            for (int j = 1+i; j < physobjects.size(); j++)
+            // 
+            for (int j = 1 + i; j < physobjects.size(); j++)
             {
 
                 physbody* objA = physobjects[i];
                 physCircle* circleA = (physCircle*)objA;
-               // objA->color = GREEN;
+                // objA->color = GREEN;
                 physbody* objB = physobjects[j];
                 physCircle* circleB = (physCircle*)objB;
-            
+
                 if (CircleCircleCollision(circleA, circleB))
                 {
-                    std::cout << "Birds:TOuched " << std::endl;
+                    //   std::cout << "Birds collided " << std::endl;
                     objA->color = RED;
                     objB->color = RED;
                 }
                 else
                 {
-                  
+
                 }
             }
         }
@@ -191,7 +175,7 @@ void update()
     dt = 1.0f / TARGET_FPS;
     mytime += dt;
     if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
-    {          
+    {
         launchAngle = 0;
         X = startX;
         Y = startY;
@@ -201,13 +185,13 @@ void update()
     if (IsKeyPressed(KEY_SPACE))
     {
 
-        physbody* bird = new physCircle();
-     
+        physCircle* bird = new physCircle();
+
         bird->pos = { X, Y };
         bird->vel = { launchSpeed * (float)cos(launchAngle), -launchSpeed * (float)sin(launchAngle) };
-        bird->radius = 10;
+        bird->radius = 20;
         simulation.add(bird);
-        std::cout << "Birds: " << simulation.physobjects.size() << std::endl;
+        std::cout << "Birds: Created " << simulation.physobjects.size() << std::endl;
     }
 
     birdPos.x = startX - X;
@@ -226,24 +210,24 @@ void draw()
     GuiSliderBar(Rectangle{ 60, 70, 1000, 10 }, "Y Pos", TextFormat("%.1f", Y), &Y, 0, InitialHeight);
     GuiSliderBar(Rectangle{ 60, 100, 1000, 10 }, "Speed", TextFormat("%.1f", launchSpeed), &launchSpeed, 0, 500);
     GuiSliderBar(Rectangle{ 60, 130, 1000, 10 }, "Gravity", TextFormat("%.1f", simulation.accelerationGravity.y), &simulation.accelerationGravity.y, -500, 500);
-   
+
     DrawText(TextFormat("Angle: %.1f", -launchAngle * (180 / PI)), GetScreenWidth() - 140, 10, 20, LIGHTGRAY);;
     DrawText(TextFormat("X: %.1f", birdPos.x), GetScreenWidth() - 140, 40, 20, LIGHTGRAY);
     DrawText(TextFormat("Y: %.1f", birdPos.y), GetScreenWidth() - 140, 70, 20, LIGHTGRAY);
     DrawText(TextFormat("Speed: %.1f", launchSpeed), GetScreenWidth() - 140, 100, 20, LIGHTGRAY);
-   // DrawText(TextFormat("Hyp: %.f", Hyp(birdPos.x, birdPos.y)), GetScreenWidth() - 140, 70, 20, LIGHTGRAY);
-  
-  
-      
-  //  DrawCircle(X, Y, 25, RED);
-    //marks starting position
+    // DrawText(TextFormat("Hyp: %.f", Hyp(birdPos.x, birdPos.y)), GetScreenWidth() - 140, 70, 20, LIGHTGRAY);
+
+
+
+   //  DrawCircle(X, Y, 25, RED);
+     //marks starting position
     DrawCircle(X, Y, 5, GREEN);
- 
-   
-    DrawLineV({X,Y}, launchVel(X,Y,-launchAngle, launchSpeed), RED);
+
+
+    DrawLineV({ X,Y }, launchVel(X, Y, -launchAngle, launchSpeed), RED);
     for (int i = 0; i < simulation.physobjects.size(); i++)
     {
-     //   std::cout << "Birds" << std::endl;
+        //   std::cout << "Birds" << std::endl;
         simulation.physobjects[i]->draw();
     }
 
@@ -258,7 +242,7 @@ int main()
     {
         update();
         draw();
-        
+
 
     }
 

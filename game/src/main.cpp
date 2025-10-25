@@ -24,7 +24,11 @@ float launchAngle;
 float launchSpeed;
 Vector2 birdPos;
 
-
+enum shapetype {
+    CIRCLE,
+    SQUARE,
+    HALFSPACE
+};
 
 
 class physbody
@@ -35,7 +39,7 @@ public:
     Vector2 vel;
     Vector2 drag;
     float mass;
-
+    shapetype shapeType;
     std::string name = "obj";
     Color color = GREEN;
 
@@ -44,6 +48,11 @@ public:
     {
         return pos;
     }
+    shapetype getType()
+    {
+        return shapeType;
+    }
+
 
 
 };
@@ -52,7 +61,11 @@ class physCircle : public physbody
 {
 public:
     float radius;
-
+    physCircle()
+    {
+        shapeType = CIRCLE;
+    };
+ 
     void draw() override
     {
         DrawCircle(pos.x, pos.y, radius, color);
@@ -63,6 +76,44 @@ public:
     float getRad()
     {
         return radius;
+    }
+};
+
+class physhalfspace : public physbody
+{
+private:
+    float rotation;
+    Vector2 normal = { 0,-1 };
+public:
+    physhalfspace()
+    {
+        shapeType = HALFSPACE;
+        color = RED;
+    }
+ 
+
+    void draw() override 
+    { 
+        DrawCircle(pos.x, pos.y, 8, color);
+
+        DrawLineEx(pos, pos + normal*30, 1, color);
+        Vector2 parallelToSurface = Vector2Rotate({ 0,-1 }, rotation * DEG2RAD);
+        DrawLineEx(pos- parallelToSurface*InitialHeight, pos + parallelToSurface * InitialWidth, 1, color);
+    }
+    
+    float getRotation()
+    {
+        return rotation;
+    }                       
+    void setRotation(float r)
+    {
+        rotation = r;
+        normal = Vector2Rotate({ 0,-1 }, rotation * DEG2RAD);
+    }
+    Vector2 getplane()
+    {
+        Vector2 parallelToSurface = Vector2Rotate(normal, rotation * DEG2RAD);
+        return { parallelToSurface};
     }
 };
 
@@ -83,13 +134,22 @@ float Hyp(Vector2 a)
 {
     return sqrt((a.x * a.x) + (a.y * a.y));
 };
+float DotProduct(Vector2 a, Vector2 b)
+{
+    return ((a.x * b.x) + (a.y * b.y));
+};
+float AngleBetweenVectors(Vector2 a, Vector2 b)
+{
+    return acos((DotProduct(a, b) / (Hyp(a) * Hyp(b))));
+};
+
 Vector2 launchVel(float X, float Y, float angle, float hyp)
 {
     float x = cos(angle) * hyp;
     float y = sin(angle) * hyp;
 
     return { X + x,Y + y };
-}
+};
 
 class physicSim
 {
@@ -97,7 +157,7 @@ private:
     unsigned int objcount = 0;
 public:
     std::vector<physbody*> physobjects; // All objects in physics simulation
-    Vector2 accelerationGravity = { 0, 9 };
+    Vector2 accelerationGravity = { 0, 0 };
 
     void add(physbody* newObject) // Add to physics simulation
     {
@@ -113,13 +173,18 @@ public:
         for (int i = 0; i < physobjects.size(); i++)
         {
             //vel = change in position / time, therefore     change in position = vel * time 
+            if (physobjects[i]->getType() != HALFSPACE)
+            {
+
+         
             physobjects[i]->pos = physobjects[i]->pos + physobjects[i]->vel * dt;
             //accel = deltaV / time (change in velocity over time) therefore     deltaV = accel * time
             physobjects[i]->vel = physobjects[i]->vel + accelerationGravity * dt;
             physobjects[i]->color = GREEN; //
-
+            }
         }
         checkCollisions();
+        
 
     }
 
@@ -137,38 +202,90 @@ public:
         return false;
     }
 
+    bool CirclePlaneCollision(physCircle* a, physhalfspace* b)
+    {
+        
+        std::cout << "angle is " << RAD2DEG * AngleBetweenVectors(a->getPos()-b->getPos(), b->getplane()) << std::endl;
+        if (DotProduct(a->getPos() - b->getPos(), b->getplane())>0)
+        {
+           
+            return true;
+
+        }
+        return false;
+    }
+
     void checkCollisions()
     {
         //    std::cout << "Birds: " << std::endl;
         for (int i = 0; i < physobjects.size(); i++)
         {
-            // 
-            for (int j = 1 + i; j < physobjects.size(); j++)
+          
+            if (physobjects[i]->getType() == CIRCLE)
             {
-
                 physbody* objA = physobjects[i];
                 physCircle* circleA = (physCircle*)objA;
-                // objA->color = GREEN;
-                physbody* objB = physobjects[j];
-                physCircle* circleB = (physCircle*)objB;
-
-                if (CircleCircleCollision(circleA, circleB))
-                {
-                    //   std::cout << "Birds collided " << std::endl;
-                    objA->color = RED;
-                    objB->color = RED;
-                }
-                else
+                for (int j = 1 + i; j < physobjects.size(); j++)
                 {
 
+                    if (physobjects[j]->getType() == CIRCLE)
+                    {
+;
+                        // objA->color = GREEN;
+                        physbody* objB = physobjects[j];
+                        physCircle* circleB = (physCircle*)objB;
+
+                        if (CircleCircleCollision(circleA, circleB))
+                        {
+                            //   std::cout << "Birds collided " << std::endl;
+                            objA->color = RED;
+                            objB->color = RED;
+                        }
+
+                    }
+                    else if (physobjects[j]->getType() == HALFSPACE)
+                    {
+                        physbody* objB = physobjects[j];
+                        physhalfspace* spaceB = (physhalfspace*)objB;
+                        if (CirclePlaneCollision(circleA, spaceB))
+                        {
+                            objA->color = RED;
+                        }
+                    }
                 }
             }
+            else if (physobjects[i]->getType() == HALFSPACE)
+                {
+                    physbody* objA = physobjects[i];
+                    physhalfspace* spaceA = (physhalfspace*)objA;
+                    for (int j = 1 + i; j < physobjects.size(); j++)
+                    {
+
+                        if (physobjects[j]->getType() == CIRCLE)
+                        {
+                            
+                            // objA->color = GREEN;
+                            physbody* objB = physobjects[j];
+                            physCircle* circleB = (physCircle*)objB;
+
+                            if (CirclePlaneCollision(circleB, spaceA))
+                            {
+                                //   std::cout << "Birds collided " << std::endl;
+                                objB->color = RED;
+                            }
+
+                        }
+                    }
+                }
+            
         }
     }
 };
 
 
 physicSim simulation;
+physhalfspace plane;
+
 
 void update()
 {
@@ -210,11 +327,22 @@ void draw()
     GuiSliderBar(Rectangle{ 60, 70, 1000, 10 }, "Y Pos", TextFormat("%.1f", Y), &Y, 0, InitialHeight);
     GuiSliderBar(Rectangle{ 60, 100, 1000, 10 }, "Speed", TextFormat("%.1f", launchSpeed), &launchSpeed, 0, 500);
     GuiSliderBar(Rectangle{ 60, 130, 1000, 10 }, "Gravity", TextFormat("%.1f", simulation.accelerationGravity.y), &simulation.accelerationGravity.y, -500, 500);
+   
+    float planeAngle = plane.getRotation();
+    GuiSliderBar(Rectangle{ 60, 160, 1000, 10 }, "Plane rotation", TextFormat("%.1f", plane.getRotation()), &planeAngle, 0, 180);
+    plane.setRotation(planeAngle);
+    std::cout << plane.getRotation() << std::endl;
+   
+    GuiSliderBar(Rectangle{ 60, 190, 1000, 10 }, "Plane X", TextFormat("%.1f", plane.pos.x), &plane.pos.x, 0, InitialWidth);
+    GuiSliderBar(Rectangle{ 60, 220, 1000, 10 }, "Plane Y", TextFormat("%.1f", plane.pos.y), &plane.pos.y, 0, InitialHeight);
 
     DrawText(TextFormat("Angle: %.1f", -launchAngle * (180 / PI)), GetScreenWidth() - 140, 10, 20, LIGHTGRAY);;
     DrawText(TextFormat("X: %.1f", birdPos.x), GetScreenWidth() - 140, 40, 20, LIGHTGRAY);
     DrawText(TextFormat("Y: %.1f", birdPos.y), GetScreenWidth() - 140, 70, 20, LIGHTGRAY);
     DrawText(TextFormat("Speed: %.1f", launchSpeed), GetScreenWidth() - 140, 100, 20, LIGHTGRAY);
+    DrawText(TextFormat("Angle: %.1f", plane.getRotation()), GetScreenWidth() - 140, 160, 20, LIGHTGRAY);;
+    DrawText(TextFormat("X: %.1f", plane.pos.x), GetScreenWidth() - 140, 190, 20, LIGHTGRAY);
+    DrawText(TextFormat("Y: %.1f", plane.pos.y), GetScreenWidth() - 140, 220, 20, LIGHTGRAY);
     // DrawText(TextFormat("Hyp: %.f", Hyp(birdPos.x, birdPos.y)), GetScreenWidth() - 140, 70, 20, LIGHTGRAY);
 
 
@@ -237,12 +365,15 @@ int main()
 {
     InitWindow(InitialWidth, InitialHeight, "Michael Hatzitolios 101419422 Game2005");
     SetTargetFPS(TARGET_FPS);
+    plane.pos = { 500,700 };
+   // physhalfspace* planepointer = &plane;
+    simulation.add(&plane);
 
     while (!WindowShouldClose())
     {
         update();
         draw();
-
+        plane.draw();
 
     }
 

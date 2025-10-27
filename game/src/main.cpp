@@ -113,7 +113,12 @@ public:
     Vector2 getplane()
     {
         Vector2 parallelToSurface = Vector2Rotate(normal, rotation * DEG2RAD);
-        return { parallelToSurface};
+        return  parallelToSurface;
+    }
+    Vector2 getNormal()
+    {
+       // Vector2 parallelToSurface = Vector2Rotate(normal, rotation * DEG2RAD);
+        return  normal ;
     }
 };
 
@@ -138,10 +143,16 @@ float DotProduct(Vector2 a, Vector2 b)
 {
     return ((a.x * b.x) + (a.y * b.y));
 };
-float AngleBetweenVectors(Vector2 a, Vector2 b)
+float AngleBetweenVectors2(Vector2 a, Vector2 b)
 {
     return acos((DotProduct(a, b) / (Hyp(a) * Hyp(b))));
 };
+
+float AngleBetweenVectors(Vector2 a, Vector2 b)
+{
+    return acos(Hyp(a)/Hyp(b));
+};
+
 
 Vector2 launchVel(float X, float Y, float angle, float hyp)
 {
@@ -205,7 +216,8 @@ public:
     bool CirclePlaneCollision(physCircle* a, physhalfspace* b)
     {
         
-        std::cout << "angle is " << RAD2DEG * AngleBetweenVectors(a->getPos()-b->getPos(), b->getplane()) << std::endl;
+        std::cout << "angle is " << RAD2DEG * AngleBetweenVectors(a->getPos() - b->getPos(), b->getNormal()) << std::endl;
+        DrawLineEx(a->getPos(), b->getPos(), 1, LIGHTGRAY);
         if (DotProduct(a->getPos() - b->getPos(), b->getplane())>0)
         {
            
@@ -331,7 +343,7 @@ void draw()
     float planeAngle = plane.getRotation();
     GuiSliderBar(Rectangle{ 60, 160, 1000, 10 }, "Plane rotation", TextFormat("%.1f", plane.getRotation()), &planeAngle, 0, 180);
     plane.setRotation(planeAngle);
-    std::cout << plane.getRotation() << std::endl;
+    //std::cout << plane.getRotation() << std::endl;
    
     GuiSliderBar(Rectangle{ 60, 190, 1000, 10 }, "Plane X", TextFormat("%.1f", plane.pos.x), &plane.pos.x, 0, InitialWidth);
     GuiSliderBar(Rectangle{ 60, 220, 1000, 10 }, "Plane Y", TextFormat("%.1f", plane.pos.y), &plane.pos.y, 0, InitialHeight);

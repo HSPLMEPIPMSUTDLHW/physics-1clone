@@ -39,6 +39,7 @@ public:
     Vector2 vel;
     Vector2 drag;
     float mass;
+    bool isStatic;
     shapetype shapeType;
     std::string name = "obj";
     Color color = GREEN;
@@ -52,6 +53,10 @@ public:
     {
         return shapeType;
     }
+    bool isObjStatic()
+    {
+        return isStatic;
+    }
 
 
 
@@ -64,6 +69,7 @@ public:
     physCircle()
     {
         shapeType = CIRCLE;
+        isStatic = false;
     };
  
     void draw() override
@@ -87,8 +93,10 @@ private:
 public:
     physhalfspace()
     {
-        shapeType = HALFSPACE;
+      //  shapeType = HALFSPACE;
+        shapeType = SQUARE; //get fucked i dont want to deal with you rn
         color = RED;
+        isStatic = true;
     }
  
 
@@ -173,7 +181,7 @@ public:
         for (int i = 0; i < physobjects.size(); i++)
         {
             //vel = change in position / time, therefore     change in position = vel * time 
-            if (physobjects[i]->getType() != HALFSPACE)
+            if (!physobjects[i]->isObjStatic())
             {
 
          
@@ -240,6 +248,37 @@ public:
                             //   std::cout << "Birds collided " << std::endl;
                             objA->color = RED;
                             objB->color = RED;
+                            float rads = circleA->getRad()+ circleB->getRad();
+                            Vector2 A2B = circleA->getPos() - circleB->getPos();
+                            float ABD = Hyp(circleA->getPos() - circleB->getPos());
+                            float overlap = rads - ABD;
+                            if (ABD == 0)
+                            {
+                                std::cout << "NO TELEPORTONG" << std::endl;
+                                A2B = { 1, 0 };
+                                ABD = 1;
+                            }
+                            Vector2 NormalizedA2B = A2B / ABD;
+                         //   std::cout << "RadiusA: " << circleA->getRad() << " RadiusB: " << circleB->getRad() << " Radiust: " << rads << std::endl;
+                          //  std::cout << "Distance: " << ABD << " Overlap: " << rads - ABD << std::endl;
+                       
+                            Vector2 mtv = NormalizedA2B * overlap;
+                       
+                            if (overlap > 0)
+                            {
+                             
+                              // std::cout << "A2B: " << A2B.x << " " << A2B.y << std::endl;
+                              // std::cout << "ABD: " << ABD << std::endl;
+                              // std::cout << "NormalizedA2B: " << NormalizedA2B.x << " " << NormalizedA2B.y << std::endl;
+                              // std::cout << "mtv: " << mtv.x << " " << mtv.y << std::endl;
+                              // std::cout << "PosA: " << circleA->getPos().x << " " << circleA->getPos().y << " PosB: " << circleB->getPos().x << " " << circleB->getPos().y << std::endl;
+                                objA->pos += mtv * 0.5;
+                                objB->pos -= mtv * 0.5;
+                              //  std::cout << "PosA: " << circleA->getPos().x << " "<< circleA->getPos().y<< " PosB: " << circleB->getPos().x << " " << circleB->getPos().y << std::endl;
+                            }
+
+                         
+                                
                         }
 
                     }
@@ -249,6 +288,7 @@ public:
                         physhalfspace* spaceB = (physhalfspace*)objB;
                         if (CirclePlaneCollision(circleA, spaceB))
                         {
+                            
                             objA->color = RED;
                         }
                     }
@@ -331,7 +371,7 @@ void draw()
     float planeAngle = plane.getRotation();
     GuiSliderBar(Rectangle{ 60, 160, 1000, 10 }, "Plane rotation", TextFormat("%.1f", plane.getRotation()), &planeAngle, 0, 180);
     plane.setRotation(planeAngle);
-    std::cout << plane.getRotation() << std::endl;
+    //std::cout << plane.getRotation() << std::endl;
    
     GuiSliderBar(Rectangle{ 60, 190, 1000, 10 }, "Plane X", TextFormat("%.1f", plane.pos.x), &plane.pos.x, 0, InitialWidth);
     GuiSliderBar(Rectangle{ 60, 220, 1000, 10 }, "Plane Y", TextFormat("%.1f", plane.pos.y), &plane.pos.y, 0, InitialHeight);

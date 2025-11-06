@@ -214,20 +214,35 @@ public:
         return false;
     }
 
-    bool CirclePlaneCollision(physCircle* a, physhalfspace* b)
+    bool CirclePlaneCollisionChecl(physCircle* a, physhalfspace* b)
     {
         float viper = DotProduct(a->getPos() - b->getPos(), b->getNormal());
         Vector2 projection = b->getNormal() * viper;
-        DrawLineEx(a->getPos(), a->getPos() - projection, 1, WHITE);
+        
 
         std::cout << "angle is " << RAD2DEG * AngleBetweenVectors(a->getPos()-b->getPos(), b->getNormal()) << std::endl;
-        if (DotProduct(a->getPos() - b->getPos(), b->getNormal())>0)
+        if (DotProduct(a->getPos() - b->getPos(), b->getNormal())+a->getRad()>0)
         {
-           
+            DrawLineEx(a->getPos(), a->getPos() - projection, 1, GRAY);
             return true;
 
         }
+        DrawLineEx(a->getPos(), a->getPos() - projection, 1, WHITE);
         return false;
+    }
+
+    void CirclePlaneCollision(physCircle* a, physhalfspace* b)
+    {
+        float viper = DotProduct(a->getPos() - b->getPos(), b->getNormal());
+        Vector2 projection = b->getNormal() * viper;
+        if (DotProduct(a->getPos() - b->getPos(), b->getNormal()) + a->getRad() > 0)
+        {
+         //   Vector2 mtv = (viper+ a->getRad()) * (DotProduct(a->getPos() - b->getPos(), b->getNormal()));
+            Vector2 mtv = b->getNormal() * (viper + a->getRad());
+             a->pos -= mtv;
+        }
+     //   float ABD = Hyp(a->getPos() - circleB->getPos());
+        //float overlap = rads - ABD;
     }
 
     void checkCollisions()
@@ -255,7 +270,7 @@ public:
                             //   std::cout << "Birds collided " << std::endl;
                             objA->color = RED;
                             objB->color = RED;
-                            float rads = circleA->getRad()+ circleB->getRad();
+                            float rads = circleA->getRad() + circleB->getRad();
                             Vector2 A2B = circleA->getPos() - circleB->getPos();
                             float ABD = Hyp(circleA->getPos() - circleB->getPos());
                             float overlap = rads - ABD;
@@ -274,14 +289,10 @@ public:
                             if (overlap > 0)
                             {
                              
-                              // std::cout << "A2B: " << A2B.x << " " << A2B.y << std::endl;
-                              // std::cout << "ABD: " << ABD << std::endl;
-                              // std::cout << "NormalizedA2B: " << NormalizedA2B.x << " " << NormalizedA2B.y << std::endl;
-                              // std::cout << "mtv: " << mtv.x << " " << mtv.y << std::endl;
-                              // std::cout << "PosA: " << circleA->getPos().x << " " << circleA->getPos().y << " PosB: " << circleB->getPos().x << " " << circleB->getPos().y << std::endl;
+                             
                                 objA->pos += mtv * 0.5;
                                 objB->pos -= mtv * 0.5;
-                              //  std::cout << "PosA: " << circleA->getPos().x << " "<< circleA->getPos().y<< " PosB: " << circleB->getPos().x << " " << circleB->getPos().y << std::endl;
+ 
                             }
 
                          
@@ -293,10 +304,11 @@ public:
                     {
                         physbody* objB = physobjects[j];
                         physhalfspace* spaceB = (physhalfspace*)objB;
-                        if (CirclePlaneCollision(circleA, spaceB))
+                        if (CirclePlaneCollisionChecl(circleA, spaceB))
                         {
                             
                             objA->color = RED;
+                            CirclePlaneCollision(circleA, spaceB);
                         }
                     }
                 }
@@ -315,10 +327,11 @@ public:
                             physbody* objB = physobjects[j];
                             physCircle* circleB = (physCircle*)objB;
 
-                            if (CirclePlaneCollision(circleB, spaceA))
+                            if (CirclePlaneCollisionChecl(circleB, spaceA))
                             {
                                 //   std::cout << "Birds collided " << std::endl;
                                 objB->color = RED;
+                                CirclePlaneCollision(circleB, spaceA);
                             }
 
                         }

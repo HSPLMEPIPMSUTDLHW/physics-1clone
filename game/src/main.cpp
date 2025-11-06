@@ -88,7 +88,7 @@ public:
 class physhalfspace : public physbody
 {
 private:
-    float rotation;
+    float rotation = 0;
     Vector2 normal = { 0,-1 };
 public:
     physhalfspace()
@@ -105,7 +105,7 @@ public:
         DrawCircle(pos.x, pos.y, 8, color);
 
         DrawLineEx(pos, pos + normal*30, 1, color);
-        Vector2 parallelToSurface = Vector2Rotate(normal, rotation * PI*0.5);
+        Vector2 parallelToSurface = Vector2Rotate(normal, 90 * DEG2RAD);
         DrawLineEx(pos- parallelToSurface* InitialWidth, pos + parallelToSurface * InitialWidth, 1, color);
     }
     
@@ -119,7 +119,7 @@ public:
     }
     void setRotation(float r)
     {
-        rotation = r;
+        rotation = r;   
         normal = Vector2Rotate({ 0,-1 }, rotation * DEG2RAD);
     }
     Vector2 getplane()
@@ -216,12 +216,12 @@ public:
 
     bool CirclePlaneCollision(physCircle* a, physhalfspace* b)
     {
-        float viper = DotProduct(a->getPos() - b->getPos(), b->getplane());
+        float viper = DotProduct(a->getPos() - b->getPos(), b->getNormal());
         Vector2 projection = b->getNormal() * viper;
-        DrawLineEx(a->getPos(), a->getPos() - projection, 1, GRAY);
+        DrawLineEx(a->getPos(), a->getPos() - projection, 1, WHITE);
 
-        std::cout << "angle is " << RAD2DEG * AngleBetweenVectors(a->getPos()-b->getPos(), b->getplane()) << std::endl;
-        if (DotProduct(a->getPos() - b->getPos(), b->getplane())>0)
+        std::cout << "angle is " << RAD2DEG * AngleBetweenVectors(a->getPos()-b->getPos(), b->getNormal()) << std::endl;
+        if (DotProduct(a->getPos() - b->getPos(), b->getNormal())>0)
         {
            
             return true;
@@ -376,7 +376,7 @@ void draw()
     GuiSliderBar(Rectangle{ 60, 130, 1000, 10 }, "Gravity", TextFormat("%.1f", simulation.accelerationGravity.y), &simulation.accelerationGravity.y, -500, 500);
    
     float planeAngle = plane.getRotation();
-    GuiSliderBar(Rectangle{ 60, 160, 1000, 10 }, "Plane rotation", TextFormat("%.0f", plane.getRotation()), &planeAngle, 0, 180);
+    GuiSliderBar(Rectangle{ 60, 160, 1000, 10 }, "Plane rotation", TextFormat("%.0f", plane.getRotation()), &planeAngle, -180, 180);
     plane.setRotation(planeAngle);
     //std::cout << plane.getRotation() << std::endl;
    

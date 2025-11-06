@@ -93,8 +93,8 @@ private:
 public:
     physhalfspace()
     {
-      //  shapeType = HALFSPACE;
-        shapeType = SQUARE; //get fucked i dont want to deal with you rn
+        shapeType = HALFSPACE;
+       // shapeType = SQUARE; //get fucked i dont want to deal with you rn
         color = RED;
         isStatic = true;
     }
@@ -105,14 +105,18 @@ public:
         DrawCircle(pos.x, pos.y, 8, color);
 
         DrawLineEx(pos, pos + normal*30, 1, color);
-        Vector2 parallelToSurface = Vector2Rotate({ 0,-1 }, rotation * DEG2RAD);
-        DrawLineEx(pos- parallelToSurface*InitialHeight, pos + parallelToSurface * InitialWidth, 1, color);
+        Vector2 parallelToSurface = Vector2Rotate(normal, rotation * PI*0.5);
+        DrawLineEx(pos- parallelToSurface* InitialWidth, pos + parallelToSurface * InitialWidth, 1, color);
     }
     
     float getRotation()
     {
         return rotation;
-    }                       
+    }        
+    Vector2 getNormal()
+    {
+        return normal;
+    }
     void setRotation(float r)
     {
         rotation = r;
@@ -212,7 +216,10 @@ public:
 
     bool CirclePlaneCollision(physCircle* a, physhalfspace* b)
     {
-        
+        float viper = DotProduct(a->getPos() - b->getPos(), b->getplane());
+        Vector2 projection = b->getNormal() * viper;
+        DrawLineEx(a->getPos(), a->getPos() - projection, 1, GRAY);
+
         std::cout << "angle is " << RAD2DEG * AngleBetweenVectors(a->getPos()-b->getPos(), b->getplane()) << std::endl;
         if (DotProduct(a->getPos() - b->getPos(), b->getplane())>0)
         {
@@ -369,7 +376,7 @@ void draw()
     GuiSliderBar(Rectangle{ 60, 130, 1000, 10 }, "Gravity", TextFormat("%.1f", simulation.accelerationGravity.y), &simulation.accelerationGravity.y, -500, 500);
    
     float planeAngle = plane.getRotation();
-    GuiSliderBar(Rectangle{ 60, 160, 1000, 10 }, "Plane rotation", TextFormat("%.1f", plane.getRotation()), &planeAngle, 0, 180);
+    GuiSliderBar(Rectangle{ 60, 160, 1000, 10 }, "Plane rotation", TextFormat("%.0f", plane.getRotation()), &planeAngle, 0, 180);
     plane.setRotation(planeAngle);
     //std::cout << plane.getRotation() << std::endl;
    

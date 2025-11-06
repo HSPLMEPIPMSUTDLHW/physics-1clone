@@ -49,6 +49,11 @@ public:
     {
         return pos;
     }
+    void setPos(Vector2 v)
+    {
+        pos += v;
+    }
+
     shapetype getType()
     {
         return shapeType;
@@ -200,7 +205,7 @@ public:
 
     }
 
-    bool CircleCircleCollision(physCircle* a, physCircle* b)
+    bool CircleCircleCollisionCheck(physCircle* a, physCircle* b)
     {
         // calcualtes the distance between the two circles
         // then checks if thhe distance is smaller then the radius' of the circles
@@ -213,8 +218,35 @@ public:
         }
         return false;
     }
+    void CircleCircleCollision(physCircle* a, physCircle* b)
+    {
+        float rads = a->getRad() + b->getRad();
+        Vector2 A2B = a->getPos() - b->getPos();
+        float ABD = Hyp(a->getPos() - b->getPos());
+        float overlap = rads - ABD;
+        if (ABD == 0)
+        {
+            std::cout << "NO TELEPORTONG" << std::endl;
+            A2B = { 1, 0 };
+            ABD = 1;
+        }
+        Vector2 NormalizedA2B = A2B / ABD;
+        //   std::cout << "RadiusA: " << circleA->getRad() << " RadiusB: " << circleB->getRad() << " Radiust: " << rads << std::endl;
+         //  std::cout << "Distance: " << ABD << " Overlap: " << rads - ABD << std::endl;
 
-    bool CirclePlaneCollisionChecl(physCircle* a, physhalfspace* b)
+        Vector2 mtv = NormalizedA2B * overlap;
+
+        if (overlap > 0)
+        {
+
+
+            a->pos += mtv * 0.5;
+            b->pos -= mtv * 0.5;
+
+        }
+    }
+
+    bool CirclePlaneCollisionCheck(physCircle* a, physhalfspace* b)
     {
         float viper = DotProduct(a->getPos() - b->getPos(), b->getNormal());
         Vector2 projection = b->getNormal() * viper;
@@ -250,94 +282,39 @@ public:
         //    std::cout << "Birds: " << std::endl;
         for (int i = 0; i < physobjects.size(); i++)
         {
-          
-            if (physobjects[i]->getType() == CIRCLE)
+            for (int j = 1 + i; j < physobjects.size(); j++)
             {
                 physbody* objA = physobjects[i];
-                physCircle* circleA = (physCircle*)objA;
-                for (int j = 1 + i; j < physobjects.size(); j++)
+                physbody* objB = physobjects[j];
+             
+                if (physobjects[i]->getType() == CIRCLE && physobjects[j]->getType() == CIRCLE)
                 {
-
-                    if (physobjects[j]->getType() == CIRCLE)
+                    if (CircleCircleCollisionCheck((physCircle*)objA, (physCircle*)objB))
                     {
-;
-                        // objA->color = GREEN;
-                        physbody* objB = physobjects[j];
-                        physCircle* circleB = (physCircle*)objB;
-
-                        if (CircleCircleCollision(circleA, circleB))
-                        {
-                            //   std::cout << "Birds collided " << std::endl;
-                            objA->color = RED;
-                            objB->color = RED;
-                            float rads = circleA->getRad() + circleB->getRad();
-                            Vector2 A2B = circleA->getPos() - circleB->getPos();
-                            float ABD = Hyp(circleA->getPos() - circleB->getPos());
-                            float overlap = rads - ABD;
-                            if (ABD == 0)
-                            {
-                                std::cout << "NO TELEPORTONG" << std::endl;
-                                A2B = { 1, 0 };
-                                ABD = 1;
-                            }
-                            Vector2 NormalizedA2B = A2B / ABD;
-                         //   std::cout << "RadiusA: " << circleA->getRad() << " RadiusB: " << circleB->getRad() << " Radiust: " << rads << std::endl;
-                          //  std::cout << "Distance: " << ABD << " Overlap: " << rads - ABD << std::endl;
-                       
-                            Vector2 mtv = NormalizedA2B * overlap;
-                       
-                            if (overlap > 0)
-                            {
-                             
-                             
-                                objA->pos += mtv * 0.5;
-                                objB->pos -= mtv * 0.5;
- 
-                            }
-
-                         
-                                
-                        }
-
+                        objA->color = RED;
+                        objB->color = RED;
+                        CircleCircleCollision((physCircle*)objA, (physCircle*)objB);                                                      
                     }
-                    else if (physobjects[j]->getType() == HALFSPACE)
-                    {
-                        physbody* objB = physobjects[j];
-                        physhalfspace* spaceB = (physhalfspace*)objB;
-                        if (CirclePlaneCollisionChecl(circleA, spaceB))
-                        {
-                            
-                            objA->color = RED;
-                            CirclePlaneCollision(circleA, spaceB);
-                        }
+
+                }
+                else if (physobjects[i]->getType() == CIRCLE && physobjects[j]->getType() == HALFSPACE)
+                {
+                    if (CirclePlaneCollisionCheck((physCircle*)objA, (physhalfspace*)objB))
+                    {                         
+                        objA->color = RED;
+                        CirclePlaneCollision((physCircle*)objA, (physhalfspace*)objB);
                     }
                 }
-            }
-            else if (physobjects[i]->getType() == HALFSPACE)
+                else if (physobjects[i]->getType() == HALFSPACE && physobjects[j]->getType() == CIRCLE)
                 {
-                    physbody* objA = physobjects[i];
-                    physhalfspace* spaceA = (physhalfspace*)objA;
-                    for (int j = 1 + i; j < physobjects.size(); j++)
+                    if (CirclePlaneCollisionCheck((physCircle*)objB, (physhalfspace*)objA))
                     {
-
-                        if (physobjects[j]->getType() == CIRCLE)
-                        {
-                            
-                            // objA->color = GREEN;
-                            physbody* objB = physobjects[j];
-                            physCircle* circleB = (physCircle*)objB;
-
-                            if (CirclePlaneCollisionChecl(circleB, spaceA))
-                            {
-                                //   std::cout << "Birds collided " << std::endl;
-                                objB->color = RED;
-                                CirclePlaneCollision(circleB, spaceA);
-                            }
-
-                        }
+                        objB->color = RED;
+                        CirclePlaneCollision((physCircle*)objB, (physhalfspace*)objA);
                     }
                 }
-            
+                
+            }                      
         }
     }
 };

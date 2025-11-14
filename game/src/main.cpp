@@ -248,8 +248,8 @@ public:
 
     bool CirclePlaneCollisionCheck(physCircle* a, physhalfspace* b)
     {
-        float viper = DotProduct(a->getPos() - b->getPos(), b->getNormal());
-        Vector2 projection = b->getNormal() * viper;
+        float dp = DotProduct(a->getPos() - b->getPos(), b->getNormal());
+        Vector2 projection = b->getNormal() * dp;
         
 
         std::cout << "angle is " << RAD2DEG * AngleBetweenVectors(a->getPos()-b->getPos(), b->getNormal()) << std::endl;
@@ -265,12 +265,12 @@ public:
 
     void CirclePlaneCollision(physCircle* a, physhalfspace* b)
     {
-        float viper = DotProduct(a->getPos() - b->getPos(), b->getNormal());
-        Vector2 projection = b->getNormal() * viper;
+        float dp = DotProduct(a->getPos() - b->getPos(), b->getNormal());
+        Vector2 projection = b->getNormal() * dp;
         if (DotProduct(a->getPos() - b->getPos(), b->getNormal()) + a->getRad() > 0)
         {
-         //   Vector2 mtv = (viper+ a->getRad()) * (DotProduct(a->getPos() - b->getPos(), b->getNormal()));
-            Vector2 mtv = b->getNormal() * (viper + a->getRad());
+         //   Vector2 mtv = (dp+ a->getRad()) * (DotProduct(a->getPos() - b->getPos(), b->getNormal()));
+            Vector2 mtv = b->getNormal() * (dp + a->getRad());
              a->pos -= mtv;
         }
      //   float ABD = Hyp(a->getPos() - circleB->getPos());

@@ -322,7 +322,7 @@ public:
 
 physicSim simulation;
 physhalfspace plane;
-
+physhalfspace planeB;
 
 void update()
 {
@@ -368,6 +368,7 @@ void draw()
     float planeAngle = plane.getRotation();
     GuiSliderBar(Rectangle{ 60, 160, 1000, 10 }, "Plane rotation", TextFormat("%.0f", plane.getRotation()), &planeAngle, -180, 180);
     plane.setRotation(planeAngle);
+    planeB.setRotation(-planeAngle);
     //std::cout << plane.getRotation() << std::endl;
    
     GuiSliderBar(Rectangle{ 60, 190, 1000, 10 }, "Plane X", TextFormat("%.1f", plane.pos.x), &plane.pos.x, 0, InitialWidth);
@@ -403,14 +404,16 @@ int main()
     InitWindow(InitialWidth, InitialHeight, "Michael Hatzitolios 101419422 Game2005");
     SetTargetFPS(TARGET_FPS);
     plane.pos = { 500,700 };
+    planeB.pos = { 500,700 };
    // physhalfspace* planepointer = &plane;
     simulation.add(&plane);
+    simulation.add(&planeB);
 
     while (!WindowShouldClose())
     {
         update();
         draw();
-        plane.draw();
+        //plane.draw();
 
     }
 
